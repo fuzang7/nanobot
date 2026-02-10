@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 def _make_bot_class(channel: "QQChannel") -> "type[botpy.Client]":
     """Create a botpy Client subclass bound to the given channel."""
-    intents = botpy.Intents(public_messages=True, direct_message=True)
+    intents = botpy.Intents.all()
 
     class _Bot(botpy.Client):
         def __init__(self):
