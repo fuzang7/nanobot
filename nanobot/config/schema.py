@@ -219,6 +219,15 @@ class ToolsConfig(BaseModel):
     restrict_to_workspace: bool = False  # If true, restrict all tool access to workspace directory
 
 
+class HeartbeatConfig(BaseModel):
+    """Heartbeat service configuration for periodic agent wake-up."""
+    enabled: bool = True
+    interval_s: int = 30 * 60  # 30 minutes
+    proactive_enabled: bool = False
+    proactive_channel: str = "qq"
+    proactive_chat_id: str = ""
+
+
 class Config(BaseSettings):
     """Root configuration for nanobot."""
     agents: AgentsConfig = Field(default_factory=AgentsConfig)
@@ -226,6 +235,7 @@ class Config(BaseSettings):
     providers: ProvidersConfig = Field(default_factory=ProvidersConfig)
     gateway: GatewayConfig = Field(default_factory=GatewayConfig)
     tools: ToolsConfig = Field(default_factory=ToolsConfig)
+    heartbeat: HeartbeatConfig = Field(default_factory=HeartbeatConfig)
     
     @property
     def workspace_path(self) -> Path:
