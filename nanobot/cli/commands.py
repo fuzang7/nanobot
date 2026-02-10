@@ -386,15 +386,18 @@ def gateway(
     cron.on_job = on_cron_job
     
     # Create heartbeat service
-    async def on_heartbeat(prompt: str) -> str:
+    async def on_heartbeat(prompt: str, channel: str = "cli", chat_id: str = "heartbeat") -> str:
         """Execute heartbeat through the agent."""
-        return await agent.process_direct(prompt, session_key="heartbeat")
-    
+        return await agent.process_direct(prompt, session_key="heartbeat", channel=channel, chat_id=chat_id)
+
     heartbeat = HeartbeatService(
         workspace=config.workspace_path,
         on_heartbeat=on_heartbeat,
         interval_s=config.heartbeat.interval_s,
-        enabled=config.heartbeat.enabled
+        enabled=config.heartbeat.enabled,
+        proactive_enabled=config.heartbeat.proactive_enabled,
+        proactive_channel=config.heartbeat.proactive_channel,
+        proactive_chat_id=config.heartbeat.proactive_chat_id
     )
     
     # Create channel manager
@@ -409,7 +412,22 @@ def gateway(
     if cron_status["jobs"] > 0:
         console.print(f"[green]✓[/green] Cron: {cron_status['jobs']} scheduled jobs")
     
-    console.print(f"[green]✓[/green] Heartbeat: every 30m")
+    # Convert seconds to human-readable format
+    interval_minutes = config.heartbeat.interval_s // 60
+    interval_hours = interval_minutes // 60
+    interval_days = interval_hours // 24
+
+    if interval_days > 0:
+        interval_str = f"every {interval_days}d"
+    elif interval_hours > 0:
+        interval_str = f"every {interval_hours}h"
+    else:
+        interval_str = f"every {interval_minutes}m"
+
+    console.print(f"[green]✓[/green] Heartbeat: {interval_str}")
+
+    if config.heartbeat.proactive_enabled and config.heartbeat.proactive_chat_id:
+        console.print(f"[green]✓[/green] Proactive heartbeat: enabled (channel={config.heartbeat.proactive_channel})")
     
     async def run():
         try:
